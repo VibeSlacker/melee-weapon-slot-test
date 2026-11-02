@@ -29,7 +29,7 @@ The melee box and its list sit under DiverKit's panel on the player card. The bo
 
 ## Known limits
 
-- Tested on Linux, HellForge 0.3.0 (and 0.2.0). Windows is untested.
+- Tested on Linux and Windows, HellForge 0.3.0.
 - Co-op is untested.
 - Tap 2 can be ignored while carrying a heavy object (known, not fixed).
 - With the melee in the secondary slot, picking a grenade shows the melee on the HUD (cosmetic).
