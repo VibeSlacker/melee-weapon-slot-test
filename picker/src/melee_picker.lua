@@ -1,5 +1,5 @@
 -- HD2-Addon: mods/jarvis/melee_picker
--- Dedicated Melee Slot picker 1.0.10, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.5.1+.
+-- Dedicated Melee Slot picker 1.0.11, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.5.2+.
 --
 -- One clickable box on the pre-mission player card names the extra melee weapon of
 -- Dedicated Melee Slot (the HellForge code mod). A click opens a short list
@@ -57,7 +57,9 @@ local MELEES = {
 	{ id = "hatchet",    label = "CQC-5 COMBAT HATCHET", short = "HATCHET",
 	  stats = { { "DAMAGE", "240" }, { "ATTACK SPEED", "1.00" }, { "STAMINA DRAIN", "004" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "MELEE" } },
-	{ id = "shovel",     label = "CQC-72 ENTRENCHMENT TOOL", short = "ENTRENCH TOOL" },
+	{ id = "shovel",     label = "CQC-72 ENTRENCHMENT TOOL", short = "ENTRENCH TOOL",
+	  stats = { { "DAMAGE", "165" }, { "ATTACK SPEED", "1.28" }, { "STAMINA DRAIN", "003" } },
+	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "STUN", "MELEE" } },
 	{ id = "none",       label = "NO EXTRA MELEE", short = "NONE" },
 }
 -- The stats panel appears after the cursor (or the W/S highlight) has rested on one weapon this long, in seconds.

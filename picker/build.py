@@ -8,7 +8,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import pack
 
-VERSION = "1.0.10"
+VERSION = "1.0.11"
 GUID = "6b0c4f1e-2d7a-4e5b-9a3c-7f1d8e2b5c90"
 
 def lua_str(s):
@@ -35,7 +35,7 @@ def main():
     for ext in (".gpu_resources", ".stream"):
         open(base + ext, "wb").close()
     desc = ("Pick the extra melee weapon of Dedicated Melee Slot (Machete, Stun Lance, Saber, Stun Baton, Combat Hatchet or Entrenchment Tool) "
-            "from one small box on the player card. Requires Bingus Shared Loader v15+, loaded last, and Dedicated Melee Slot 1.5.1+.")
+            "from one small box on the player card. Requires Bingus Shared Loader v15+, loaded last, and Dedicated Melee Slot 1.5.2+.")
     manifest = {"Version": 1, "Guid": GUID, "Name": "Melee Picker " + VERSION, "Description": desc,
                 "Options": [{"Name": "Melee Picker", "Description": desc, "Include": ["Addon"]}]}
     zpath = os.path.join(HERE, "Melee-Picker-%s.zip" % VERSION)

@@ -12,7 +12,7 @@ It works for me, and I need to know where it breaks for you.
 1. Close the game and any HellForge session. Mods can only be changed with no session running.
 2. If you tried the earlier test zips (`Dedicated-Melee-Weapon-Slot-1.4.0` and `Melee-Picker-1.0.6`), remove both from the Mods page first. This one replaces them.
 3. Copy these into `Documents/HellForge/mods`:
-   - `Dedicated-Melee-Slot-1.5.1.zip`
+   - `Dedicated-Melee-Slot-1.5.2.zip`
    - Bingus Shared Loader v20 (or newer; v15 is the minimum) if you do not have it
 4. Open the Mods page and enable both. Put Bingus Shared Loader **last** in the order.
 5. Start a session and open the player card (loadout screen). A box reading `MELEE: <name>` shows up with the other boxes.
@@ -48,7 +48,7 @@ Please include all of these:
 ## Checksum (sha256)
 
 ```
-fd127de2bbd58539fbec42eff89ea7b24d87bc40a665e015d03ecadbd31c27a8  Dedicated-Melee-Slot-1.5.1.zip
+a54962c1aa481110d826c0468ec12eca669df6a2b0b0bde3e1521e89b2611dec  Dedicated-Melee-Slot-1.5.2.zip
 ```
 
 ## License

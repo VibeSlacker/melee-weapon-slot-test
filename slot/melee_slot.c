@@ -1,4 +1,4 @@
-/* Dedicated Melee Slot 1.5.1 (vibeslacker.dedicated-melee-slot). 1.5.1: adds the CQC-72 Entrenchment Tool (shovel). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
+/* Dedicated Melee Slot 1.5.2 (vibeslacker.dedicated-melee-slot). 1.5.2: Entrenchment Tool stats popup (picker). 1.5.1: adds the CQC-72 Entrenchment Tool (shovel). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
  * hatchet) in melee-slot-weapon.txt; a melee's built-in package set is used unless melee-slot-package.txt overrides it; melee-slot-probe.txt
  * turns on the package-list dump used to find the sets of the melees that have none yet. Carry a pistol AND a melee weapon: tapping the secondary key (2) while the
  * secondary is already drawn toggles slot 2 between the real secondary and the melee weapon, in about half a second.
@@ -560,7 +560,7 @@ HF_MOD_EXPORT int hellforge_mod_init(const HfApi* hf, HfMod* mod)
     HANDLE k = CreateThread(NULL, 0, KeyThread, NULL, 0, NULL);
     if (k) CloseHandle(k);
     int tick = hf->size >= offsetof(HfApi, on_game_thread) + sizeof hf->on_game_thread ? hf->on_game_thread(mod, Tick, NULL) : 0;
-    hf->log(mod, "Dedicated Melee Slot 1.5.1 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s)",
+    hf->log(mod, "Dedicated Melee Slot 1.5.2 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s)",
         ok ? "subscribed" : "REFUSED", t ? "started" : "FAILED", k ? "started" : "FAILED", tick ? "hooked" : "NOT hooked");
     return 0;
 }
