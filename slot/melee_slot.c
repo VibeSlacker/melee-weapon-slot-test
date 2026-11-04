@@ -1,4 +1,4 @@
-/* Dedicated Melee Slot 1.5.0 (vibeslacker.dedicated-melee-slot). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
+/* Dedicated Melee Slot 1.5.1 (vibeslacker.dedicated-melee-slot). 1.5.1: adds the CQC-72 Entrenchment Tool (shovel). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
  * hatchet) in melee-slot-weapon.txt; a melee's built-in package set is used unless melee-slot-package.txt overrides it; melee-slot-probe.txt
  * turns on the package-list dump used to find the sets of the melees that have none yet. Carry a pistol AND a melee weapon: tapping the secondary key (2) while the
  * secondary is already drawn toggles slot 2 between the real secondary and the melee weapon, in about half a second.
@@ -142,11 +142,14 @@ static const MeleeInfo kMelee[] = {
     { "hatchet",    "cqc-5",  0x75816077C139C850ull, "1982853d15d996da 055f887c3bc616fe 17c3fae85b906d79 2be8dbbfc211e97f 473b8f1e3b759384 "
                                                        "681275af9e93cb2c 69a0588d8634765b 93b8833ac9229a55 a68c0263a22a26dd ac1950d1411393f2 "
                                                        "b6e4fb7620b72aee c98cdbe584ec4dfa" },
+    /* UNTESTED set: only the shovel's own loadout package (it holds the unit, bones, state machine, animations and audio bank). Shared
+     * extras the other melees carry may be needed; if it draws as a purple question mark, run a probe mission and diff as for the others. */
+    { "shovel",     "cqc-72", 0xE85E623F93F96FB3ull, "49de16e1343250e4" },
 };
 static const char* g_meleeName = "";
 static const char* g_meleePackages = "";
 
-/* The melee in melee-slot-weapon.txt: a name from kMelee (machete, stun-lance, saber, stun-baton, hatchet; spaces and underscores count as
+/* The melee in melee-slot-weapon.txt: a name from kMelee (machete, stun-lance, saber, stun-baton, hatchet, shovel; spaces and underscores count as
  * hyphens) or 16 hex digits (optional 0x) of a resource id. 0 when missing or unreadable. */
 static uint64_t ReadMeleeResource(void)
 {
@@ -557,7 +560,7 @@ HF_MOD_EXPORT int hellforge_mod_init(const HfApi* hf, HfMod* mod)
     HANDLE k = CreateThread(NULL, 0, KeyThread, NULL, 0, NULL);
     if (k) CloseHandle(k);
     int tick = hf->size >= offsetof(HfApi, on_game_thread) + sizeof hf->on_game_thread ? hf->on_game_thread(mod, Tick, NULL) : 0;
-    hf->log(mod, "Dedicated Melee Slot 1.5.0 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s)",
+    hf->log(mod, "Dedicated Melee Slot 1.5.1 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s)",
         ok ? "subscribed" : "REFUSED", t ? "started" : "FAILED", k ? "started" : "FAILED", tick ? "hooked" : "NOT hooked");
     return 0;
 }

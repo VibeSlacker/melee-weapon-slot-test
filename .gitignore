@@ -2,3 +2,6 @@ __pycache__/
 *.zip
 *.bak
 hellforge-text/
+release/old-releases/
+release/backups/
+research/

@@ -3,7 +3,7 @@
 Carry your pistol AND a melee weapon at once in Helldivers 2 on HellForge. One download, two parts:
 
 - **The slot** (C mod): spawns the melee weapon next to your pistol. Tap **2** while the secondary is drawn and it toggles between pistol and melee in about half a second. Survives death and respawn. Does nothing until a melee is picked.
-- **The pick box** (Lua mod, needs Bingus Shared Loader): a small box on the loadout card where you pick the melee: Machete, Stun Lance, Saber, Stun Baton, Combat Hatchet, or none.
+- **The pick box** (Lua mod, needs Bingus Shared Loader): a small box on the loadout card where you pick the melee: Machete, Stun Lance, Saber, Stun Baton, Combat Hatchet, Entrenchment Tool, or none.
 
 It works for me, and I need to know where it breaks for you.
 
@@ -12,7 +12,7 @@ It works for me, and I need to know where it breaks for you.
 1. Close the game and any HellForge session. Mods can only be changed with no session running.
 2. If you tried the earlier test zips (`Dedicated-Melee-Weapon-Slot-1.4.0` and `Melee-Picker-1.0.6`), remove both from the Mods page first. This one replaces them.
 3. Copy these into `Documents/HellForge/mods`:
-   - `Dedicated-Melee-Slot-1.5.0.zip`
+   - `Dedicated-Melee-Slot-1.5.1.zip`
    - Bingus Shared Loader v20 (or newer; v15 is the minimum) if you do not have it
 4. Open the Mods page and enable both. Put Bingus Shared Loader **last** in the order.
 5. Start a session and open the player card (loadout screen). A box reading `MELEE: <name>` shows up with the other boxes.
@@ -34,7 +34,7 @@ The melee box and its list sit under DiverKit's panel on the player card. The bo
 - Tap 2 can be ignored while carrying a heavy object (known, not fixed).
 - With the melee in the secondary slot, picking a grenade shows the melee on the HUD (cosmetic).
 - Built for game build 25480438 (the SDK manifest). After a game update the mod needs a matching release.
-- Stick to the five weapons in the list. A wrong model package id is a fatal game error, so the mod only uses the game's own.
+- Stick to the six weapons in the list. A wrong model package id is a fatal game error, so the mod only uses the game's own.
 
 ## Reporting a bug
 
@@ -48,8 +48,12 @@ Please include all of these:
 ## Checksum (sha256)
 
 ```
-f42cd156d835e2aaa7dee16c163b6b5be25b4e3cd134efab3ef3eebde629d2f9  Dedicated-Melee-Slot-1.5.0.zip
+fd127de2bbd58539fbec42eff89ea7b24d87bc40a665e015d03ecadbd31c27a8  Dedicated-Melee-Slot-1.5.1.zip
 ```
+
+## License
+
+MIT License, copyright (c) 2026 vibeslacker; the full text is in [`LICENSE`](LICENSE). If you use this mod or its idea in your own work, please credit vibeslacker for the idea.
 
 ## Source
 

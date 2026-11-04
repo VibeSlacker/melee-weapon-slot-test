@@ -1,10 +1,10 @@
 -- HD2-Addon: mods/jarvis/melee_picker
--- Dedicated Melee Slot picker 1.0.9, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.5.0+.
+-- Dedicated Melee Slot picker 1.0.10, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.5.1+.
 --
 -- One clickable box on the pre-mission player card names the extra melee weapon of
 -- Dedicated Melee Slot (the HellForge code mod). A click opens a short list
 -- (CQC-42 Machete, CQC-19 Stun Lance, CQC-2 Saber, CQC-30 Stun Baton, CQC-5 Combat
--- Hatchet, or none); a pick is written to melee-slot-weapon.txt (Documents\HellForge and, for a sandboxed game, the Logs folder),
+-- Hatchet, CQC-72 Entrenchment Tool, or none); a pick is written to melee-slot-weapon.txt (Documents\HellForge and, for a sandboxed game, the Logs folder),
 -- which that mod reads. This mod touches no game data: it only draws the box with the
 -- game's own Gui and writes the one text file.
 -- Drawing, signatures, card finding and the mouse are SAPP's proven technique.
@@ -57,11 +57,12 @@ local MELEES = {
 	{ id = "hatchet",    label = "CQC-5 COMBAT HATCHET", short = "HATCHET",
 	  stats = { { "DAMAGE", "240" }, { "ATTACK SPEED", "1.00" }, { "STAMINA DRAIN", "004" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "MELEE" } },
+	{ id = "shovel",     label = "CQC-72 ENTRENCHMENT TOOL", short = "ENTRENCH TOOL" },
 	{ id = "none",       label = "NO EXTRA MELEE", short = "NONE" },
 }
 -- The stats panel appears after the cursor (or the W/S highlight) has rested on one weapon this long, in seconds.
 local TIP = { delay = 0.5, wall = os.clock }
-local ALIASES = { ["cqc-42"] = "machete", ["cqc-19"] = "stun-lance", ["cqc-2"] = "saber", ["cqc-30"] = "stun-baton", ["cqc-5"] = "hatchet" }
+local ALIASES = { ["cqc-42"] = "machete", ["cqc-19"] = "stun-lance", ["cqc-2"] = "saber", ["cqc-30"] = "stun-baton", ["cqc-5"] = "hatchet", ["cqc-72"] = "shovel" }
 
 -- ------------------------------------------------------------------ memory
 pcall(ffi.cdef, [[
