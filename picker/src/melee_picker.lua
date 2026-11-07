@@ -1,12 +1,15 @@
 -- HD2-Addon: mods/jarvis/melee_picker
--- Dedicated Melee Slot picker 1.0.11, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.5.2+.
+-- Dedicated Melee Slot picker 1.2.0, for Bingus Shared Loader v15+ and Dedicated Melee Slot 1.6.0+.
 --
 -- One clickable box on the pre-mission player card names the extra melee weapon of
 -- Dedicated Melee Slot (the HellForge code mod). A click opens a short list
 -- (CQC-42 Machete, CQC-19 Stun Lance, CQC-2 Saber, CQC-30 Stun Baton, CQC-5 Combat
 -- Hatchet, CQC-72 Entrenchment Tool, or none); a pick is written to melee-slot-weapon.txt (Documents\HellForge and, for a sandboxed game, the Logs folder),
 -- which that mod reads. This mod touches no game data: it only draws the box with the
--- game's own Gui and writes the one text file.
+-- game's own Gui and writes the two pick files. 1.2.0: the box is split in two halves, PRI (melee for the
+-- primary slot) and SEC (melee for the secondary slot), and two keys, "Melee 1" and "Melee 2", are
+-- registered on the game's bindings page (Mod Bindings Menu); a press tells Dedicated Melee Slot to swap
+-- that slot between its own weapon and its melee.
 -- Drawing, signatures, card finding and the mouse are SAPP's proven technique.
 --
 -- Log:      Logs/MeleePicker.log (in the CowboyBingus log folder)
@@ -14,7 +17,7 @@
 --           dragged with the left mouse button and the new spot is saved)
 
 if rawget(_G, "JarvisMeleePicker") then return true end
-local REVISION = "Dedicated Melee Slot picker 1.0.9"
+local REVISION = "Dedicated Melee Slot picker 1.2.0"
 local state = { revision = REVISION, frames = 0, status = "starting" }
 rawset(_G, "JarvisMeleePicker", state)
 
@@ -42,25 +45,25 @@ local SIGS = --@SIGS@
 -- The melee weapons the code mod knows, in list order. id = what melee-slot-weapon.txt holds.
 -- Each weapon's stats and traits are copied from the game's own armory screen (read 2026-11-01).
 local MELEES = {
-	{ id = "machete",    label = "CQC-42 MACHETE", short = "MACHETE",
+	{ id = "machete",    label = "CQC-42 MACHETE", short = "MACHETE", tiny = "MACHETE",
 	  stats = { { "DAMAGE", "300" }, { "ATTACK SPEED", "0.50" }, { "STAMINA DRAIN", "005" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "MELEE" } },
-	{ id = "stun-lance", label = "CQC-19 STUN LANCE", short = "STUN LANCE",
+	{ id = "stun-lance", label = "CQC-19 STUN LANCE", short = "STUN LANCE", tiny = "LANCE",
 	  stats = { { "DAMAGE", "165" }, { "ATTACK SPEED", "1.00" }, { "STAMINA DRAIN", "003" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "STUN", "MELEE" } },
-	{ id = "saber",      label = "CQC-2 SABER", short = "SABER",
+	{ id = "saber",      label = "CQC-2 SABER", short = "SABER", tiny = "SABER",
 	  stats = { { "DAMAGE", "188" }, { "ATTACK SPEED", "1.28" }, { "STAMINA DRAIN", "003" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "MELEE" } },
-	{ id = "stun-baton", label = "CQC-30 STUN BATON", short = "STUN BATON",
+	{ id = "stun-baton", label = "CQC-30 STUN BATON", short = "STUN BATON", tiny = "BATON",
 	  stats = { { "DAMAGE", "120" }, { "ATTACK SPEED", "1.28" }, { "STAMINA DRAIN", "003" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "STUN", "MELEE" } },
-	{ id = "hatchet",    label = "CQC-5 COMBAT HATCHET", short = "HATCHET",
+	{ id = "hatchet",    label = "CQC-5 COMBAT HATCHET", short = "HATCHET", tiny = "HATCHET",
 	  stats = { { "DAMAGE", "240" }, { "ATTACK SPEED", "1.00" }, { "STAMINA DRAIN", "004" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "MELEE" } },
-	{ id = "shovel",     label = "CQC-72 ENTRENCHMENT TOOL", short = "ENTRENCH TOOL",
+	{ id = "shovel",     label = "CQC-72 ENTRENCHMENT TOOL", short = "ENTRENCH TOOL", tiny = "SHOVEL",
 	  stats = { { "DAMAGE", "165" }, { "ATTACK SPEED", "1.28" }, { "STAMINA DRAIN", "003" } },
 	  traits = { "MEDIUM ARMOR PENETRATING", "ONE HANDED", "STUN", "MELEE" } },
-	{ id = "none",       label = "NO EXTRA MELEE", short = "NONE" },
+	{ id = "none",       label = "NO MELEE", short = "NONE", tiny = "NONE" },
 }
 -- The stats panel appears after the cursor (or the W/S highlight) has rested on one weapon this long, in seconds.
 local TIP = { delay = 0.5, wall = os.clock }
@@ -82,6 +85,8 @@ pcall(ffi.cdef, "uint32_t GetCurrentProcessId(void);")
 pcall(ffi.cdef, "int GetCursorPos(void *);")
 pcall(ffi.cdef, "int ScreenToClient(void *, void *);")
 pcall(ffi.cdef, "int GetClientRect(void *, void *);")
+pcall(ffi.cdef, "void *OpenEventA(uint32_t access, int inherit, const char *name);")
+pcall(ffi.cdef, "int SetEvent(void *event);")
 local kernel = ffi.load("kernel32")
 local user = ffi.load("user32")
 local MEM_COMMIT = 0x1000
@@ -323,13 +328,14 @@ end
 --   Documents\HellForge\melee-slot-weapon.txt         (best effort; works unsandboxed and on 0.2.0)
 --   %LOCALAPPDATA%\CowboyBingus\Helldivers2\Logs\...   (always tried; the code mod reads it too)
 -- A pick writes both; the code mod and this box use whichever file is newer.
-local FILE = "melee-slot-weapon.txt"
-local function doc_path()
+-- Slot 1 = the primary (melee-slot-primary.txt), slot 2 = the secondary (melee-slot-weapon.txt, as in every earlier version).
+local FILES = { "melee-slot-primary.txt", "melee-slot-weapon.txt" }
+local function doc_path(slot)
 	local home = os.getenv("USERPROFILE")
 	if not home or home == "" then return nil end
-	return home .. "\\Documents\\HellForge\\" .. FILE
+	return home .. "\\Documents\\HellForge\\" .. FILES[slot]
 end
-local function env_path() return DIR .. FILE end
+local function env_path(slot) return DIR .. FILES[slot] end
 
 -- Last-write time of a file as one number (0 when it is missing or the time cannot be read).
 local mtime_ok = pcall(function ()
@@ -359,18 +365,18 @@ local function read_file(path)
 end
 
 -- The text the code mod will use: the newer of the two files (the Logs one if the times cannot be read).
-local function current_text()
-	local a, b = read_file(doc_path()), read_file(env_path())
+local function current_text(slot)
+	local a, b = read_file(doc_path(slot)), read_file(env_path(slot))
 	if a and b then
-		if mtime(doc_path()) > mtime(env_path()) then return a end
+		if mtime(doc_path(slot)) > mtime(env_path(slot)) then return a end
 		return b
 	end
 	return b or a
 end
 
 -- The melee id now in the file: one of MELEES' ids, "other" for a hex id, "none" for a missing or empty file.
-local function read_choice()
-	local text = current_text()
+local function read_choice(slot)
+	local text = current_text(slot)
 	if not text then return "none" end
 	local word = text:match("^%s*([^\r\n]-)%s*$") or ""
 	word = word:lower():gsub("[ _]", "-")
@@ -389,13 +395,13 @@ local function write_to(path, id)
 	return true
 end
 
-local function write_choice(id)
-	local okEnv = write_to(env_path(), id)
-	local okDoc = write_to(doc_path(), id)
-	if not okEnv and not okDoc then log("pick not saved: neither " .. env_path() .. " nor Documents\\HellForge could be written") return false end
+local function write_choice(id, slot)
+	local okEnv = write_to(env_path(slot), id)
+	local okDoc = write_to(doc_path(slot), id)
+	if not okEnv and not okDoc then log("pick not saved: neither " .. env_path(slot) .. " nor Documents\\HellForge could be written") return false end
 	if not okDoc then log("pick: Documents\\HellForge is not writable here (sandbox); saved to the Logs folder instead, the code mod reads it") end
-	if read_choice() ~= id then log("pick written but reads back differently: " .. id) return false end
-	log("pick saved: " .. id)
+	if read_choice(slot) ~= id then log("pick written but reads back differently: " .. id) return false end
+	log("pick saved for the " .. (slot == 1 and "primary" or "secondary") .. ": " .. id)
 	return true
 end
 
@@ -411,18 +417,24 @@ local function short_of(id)
 	return "?"
 end
 
+local function tiny_of(id)
+	for _, m in ipairs(MELEES) do if m.id == id then return m.tiny end end
+	if id == "other" then return "CUSTOM" end
+	return "?"
+end
+
 -- ------------------------------------------------------------------ settings
 -- Positions are in card units (the card is 420 wide), measured from the
 -- lower-left corner of the EQUIPMENT button; x goes right, y goes up.
 local CFG = DIR .. "MeleePicker.cfg"
 local SETTINGS = {
-	{ "box_x", 213, "melee box: left edge (213 = right half of the card, lined up with SAPP's passive box)" },
+	{ "box_x", 6, "melee box: left edge (6 = left edge of SAPP's class box, so the box spans both of SAPP's boxes)" },
 	{ "box_y", 82, "melee box: bottom edge (negative = below the EQUIPMENT button; SAPP's boxes sit at -44, this is the row under them)" },
-	{ "box_w", 201, "melee box: width" },
+	{ "box_w", 408, "melee box: width (408 = both of SAPP's boxes, 6 to 414)" },
 	{ "box_h", 26, "melee box: height" },
 	{ "box_text", 15, "melee box: text size" },
 	{ "equip_y", 370, "the Equipment page is showing when the button sits at or above this screen height" },
-	{ "eq_box_x", 213, "melee box on the Equipment page: left edge" },
+	{ "eq_box_x", 6, "melee box on the Equipment page: left edge" },
 	{ "eq_box_y", 78, "melee box on the Equipment page: bottom edge (SAPP's box is at 46)" },
 	{ "grid_x", 213, "list: left edge" },
 	{ "grid_y", 111, "list: bottom edge" },
@@ -590,7 +602,12 @@ local function layout(card, gw, gh, open, drag)
 	out.equip = equip
 	out.box = { x = clamp(card.x + bx * s + dx, 0, gw - bw), y = clamp(card.y + by * s + dy, 0, gh - bh),
 		w = bw, h = bh, key = "box", text = cfg.box_text }
-	out.regions[#out.regions + 1] = out.box
+	-- two halves: left = the primary's melee, right = the secondary's
+	local half = math.floor(bw / 2)
+	out.box1 = { x = out.box.x, y = out.box.y, w = half, h = bh, key = "box1" }
+	out.box2 = { x = out.box.x + half, y = out.box.y, w = bw - half, h = bh, key = "box2" }
+	out.regions[#out.regions + 1] = out.box1
+	out.regions[#out.regions + 1] = out.box2
 	return out
 end
 
@@ -638,14 +655,14 @@ local function pointer_step(sample, over)
 	return clicked
 end
 
-local function draw(card, lay, handles, hover, gw, gh, current, tip)
+local function draw(card, lay, handles, hover, gw, gh, choices, tip)
 	local App, World, Gui = engine.Application, engine.World, engine.Gui
 	local target
 	local main = App.main_world()
 	for _, w in ipairs(App.worlds() or {}) do if w ~= main then target = w break end end
 	if not target then ui_clear() return end
 	local sig = string.format("%.1f,%.1f,%.1f,%.1f|%d,%d|%s|%s|%s|%s|%d", card.x, card.y, card.w, card.h, gw, gh, handles.key,
-		tostring(current), tostring(hover), tostring(lay.open), cfg_rev)
+		tostring(choices[1]) .. "/" .. tostring(choices[2]), tostring(hover), tostring(lay.open), cfg_rev)
 		.. "|tip=" .. tostring(tip)
 		.. string.format("|%.1f,%.1f|%.1f,%.1f", lay.box.x, lay.box.y, lay.grid and lay.grid.x or 0, lay.grid and lay.grid.y or 0)
 	if ui.world == target and ui.sig == sig then return end
@@ -700,16 +717,21 @@ local function draw(card, lay, handles, hover, gw, gh, current, tip)
 	local t = math.max(1, s)
 	local box = lay.box
 	rect(box, color(0, 0, 0, cfg.box_alpha))
-	outline(box, (hover == "box" or lay.open) and gold or muted, t)
-	text("MELEE: " .. short_of(current), box, box.text * s, white, 6 * s, true)
+	outline(box, ((hover and hover:find("^box")) or lay.open) and gold or muted, t)
+	for slot, half in ipairs({ lay.box1, lay.box2 }) do
+		local c = choices[slot]
+		if lay.open == slot then outline(half, gold, t) end
+		text((slot == 1 and "PRI: " or "SEC: ") .. tiny_of(c), half, box.text * s, c ~= "none" and gold or white, 3 * s, true)
+	end
+	rect({ x = lay.box2.x - t / 2, y = box.y + 2 * t, w = t, h = box.h - 4 * t }, muted, 962)
 	if lay.grid then
 		local grid = lay.grid
 		rect(grid, color(0, 0, 0, cfg.grid_alpha))
 		outline(grid, gold, t)
-		text("EXTRA MELEE   W S + SPACE", { x = grid.x, y = grid.y + grid.h - TITLE_H * s, w = grid.w, h = TITLE_H * s }, 12 * s, muted, 6 * s)
+		text((lay.open == 1 and "PRIMARY MELEE" or "SECONDARY MELEE") .. "   W S + SPACE", { x = grid.x, y = grid.y + grid.h - TITLE_H * s, w = grid.w, h = TITLE_H * s }, 12 * s, muted, 6 * s)
 		for _, cell in ipairs(lay.cells) do
 			if hover == cell.key then rect(cell, color(70, 70, 70, 255), 961) end
-			local on = cell.id == current
+			local on = cell.id == choices[lay.open]
 			if on then rect(cell, gold, 962) end
 			if hover == cell.key then
 				local frame = math.max(2, 2 * s)
@@ -720,7 +742,7 @@ local function draw(card, lay, handles, hover, gw, gh, current, tip)
 	end
 	if tip then
 		-- the stats panel: just right of the list, top level with the highlighted row (right of the box when the list is closed); on the left when the screen has no room
-		local id = tip == "box" and current or tip:sub(3)
+		local id = tip == "box1" and choices[1] or tip == "box2" and choices[2] or tip:sub(3)
 		local entry
 		for _, m in ipairs(MELEES) do if m.id == id then entry = m end end
 		if entry and entry.stats then
@@ -828,11 +850,11 @@ local function ui_step()
 	if not ui.visible or state.frames % 120 == 0 then load_cfg() end
 	if not ui.visible then
 		ui.visible = true
-		ui.choice = read_choice()
+		ui.choices = { read_choice(1), read_choice(2) }
 		ui_note(string.format("box: card at %.1f,%.1f size %.1fx%.1f, screen %dx%d, slot %d, melee now %s",
-			card.x, card.y, card.w, card.h, gw, gh, card.slot, tostring(ui.choice)))
+			card.x, card.y, card.w, card.h, gw, gh, card.slot, tostring(ui.choices[1]) .. " (primary) / " .. tostring(ui.choices[2]) .. " (secondary)"))
 	end
-	if state.frames % 60 == 0 then ui.choice = read_choice() or ui.choice end
+	if state.frames % 60 == 0 then ui.choices = { read_choice(1) or ui.choices[1], read_choice(2) or ui.choices[2] } end
 	local function relayout() return layout(card, gw, gh, ui.open, nil) end
 	local lay = layout(card, gw, gh, ui.open, ui.drag)
 	local sample = pointer_sample(gw, gh)
@@ -840,8 +862,8 @@ local function ui_step()
 	local clicked = pointer_step(sample, hover or (ui.open and sample and "outside") or nil)
 	-- a press on the box or on the list's own background that then moves is a drag, not a click
 	if sample and cfg.drag ~= 0 then
-		if sample.down and ui.was_down == false and (hover == "box" or hover == "grid") then
-			ui.press = { key = hover, x = sample.x, y = sample.y }
+		if sample.down and ui.was_down == false and (hover == "box1" or hover == "box2" or hover == "grid") then
+			ui.press = { key = hover == "grid" and "grid" or "box", x = sample.x, y = sample.y }
 		elseif sample.down and ui.press then
 			local dx, dy = sample.x - ui.press.x, sample.y - ui.press.y
 			if ui.drag or math.abs(dx) + math.abs(dy) > 6 * lay.s then ui.drag = { key = ui.press.key, dx = dx, dy = dy } end
@@ -860,11 +882,15 @@ local function ui_step()
 		ui.press, ui.drag, ui.was_down = nil, nil, nil
 	end
 	local function pick(id)
-		if write_choice(id) then ui.choice = id end
+		local slot = ui.open
+		if slot and write_choice(id, slot) then ui.choices[slot] = id end
 		ui.open, ui.sel = nil, nil
 	end
 	if clicked then
-		if clicked == "box" then ui.open = not ui.open
+		if clicked == "box1" or clicked == "box2" then
+			local slot = clicked == "box1" and 1 or 2
+			ui.open = ui.open ~= slot and slot or nil
+			ui.sel = nil
 		elseif clicked == "outside" then ui.open = false
 		elseif clicked:sub(1, 2) == "m:" then pick(clicked:sub(3)) end
 		lay = relayout()
@@ -875,7 +901,7 @@ local function ui_step()
 		local sel = ui.sel
 		if not sel then
 			sel = 1
-			for i, m in ipairs(MELEES) do if m.id == ui.choice then sel = i end end
+			for i, m in ipairs(MELEES) do if m.id == ui.choices[ui.open] then sel = i end end
 		end
 		if sample and (sample.x ~= ui.mx or sample.y ~= ui.my) and hover and hover:find("^m:") then
 			for i, m in ipairs(MELEES) do if "m:" .. m.id == hover then sel = i end end
@@ -905,11 +931,66 @@ local function ui_step()
 	if cfg.hold_diverkit ~= 0 and busy then hold_diverkit(true)
 	elseif not (sample and sample.down) then hold_diverkit(false) end
 	-- the stats panel: after the cursor (or the highlight) has rested on one weapon for TIP.delay seconds
-	local tip_key = hover and not ui.drag and not ui.press and (hover == "box" or hover:find("^m:")) and hover or nil
+	local tip_key = hover and not ui.drag and not ui.press and (hover:find("^box") or hover:find("^m:")) and hover or nil
 	if tip_key ~= ui.tip_key then ui.tip_key, ui.tip_at, ui.tip_shown = tip_key, tip_key and TIP.wall() or nil, false end
 	if tip_key and not ui.tip_shown and TIP.wall() - ui.tip_at >= TIP.delay then ui.tip_shown = true end
 	local tip = tip_key and ui.tip_shown and tip_key or nil
-	draw(card, lay, ui.handles, hover, gw, gh, ui.choice, tip)
+	draw(card, lay, ui.handles, hover, gw, gh, ui.choices, tip)
+end
+
+-- ------------------------------------------------------------------ the melee keys
+-- Two keys of the player's own on the game's bindings page under MODS > DEDICATED MELEE SLOT (Mod Bindings Menu,
+-- optional; both unbound until set): "Melee 1" swaps the primary slot between its own weapon and its melee, "Melee 2"
+-- the secondary. The player sets each key and its trigger (press, long press, double tap...) in the game's own picker,
+-- e.g. Melee 1 = long press on the primary's slot key. A press sets a named event that Dedicated Melee Slot 1.6.0+ waits
+-- on (both mods live in the game's process). Registration is retried once a second for 60 tries, since addons load in
+-- no fixed order.
+local KEY_CATEGORY = "Dedicated Melee Slot"
+local keys = {
+	{ id = "vibeslacker.dedicated_melee_slot.primary", label = "Melee 1 (primary slot)", event_name = "Local\\VibeSlackerDedicatedMeleeSlotKey1" },
+	{ id = "vibeslacker.dedicated_melee_slot.secondary", label = "Melee 2 (secondary slot)", event_name = "Local\\VibeSlackerDedicatedMeleeSlotKey2" },
+}
+for _, k in ipairs(keys) do k.registered, k.tries, k.next_try, k.was, k.last, k.event, k.presses = false, 0, 0, nil, nil, nil, 0 end
+local function bindings_menu()
+	local m = rawget(_G, "ModBindingsMenu")
+	if type(m) ~= "table" or rawget(m, "api") ~= 1 or type(rawget(m, "version")) ~= "number" or m.version < 2 then return nil end
+	return m
+end
+local function key_note(k, text)
+	if text ~= k.last then k.last = text; log(text) end
+end
+local function key_signal(k)
+	if k.event == nil then k.event = kernel.OpenEventA(0x0002, 0, k.event_name) end   -- EVENT_MODIFY_STATE
+	if k.event == nil then key_note(k, "key: Dedicated Melee Slot 1.6.0+ is not listening (event not found); the press of " .. k.label .. " was dropped") return end
+	kernel.SetEvent(k.event)
+	k.presses = k.presses + 1
+	if k.presses <= 5 then log("key: " .. k.label .. " pressed, sent to Dedicated Melee Slot") end
+end
+local function key_step(frame)
+	local m = bindings_menu()
+	if not m then return end
+	for _, k in ipairs(keys) do
+		if not k.registered then
+			if k.tries < 60 and frame >= k.next_try then
+				k.next_try, k.tries = frame + 60, k.tries + 1
+				local ok, done, why = pcall(m.register_binding, k.id, k.label, nil, { category = KEY_CATEGORY })
+				if ok and done == true then
+					k.registered = true
+					log("key: on the game's bindings page under MODS > DEDICATED MELEE SLOT (" .. k.label .. "); unbound until you set it")
+				else
+					key_note(k, "key: the bindings page refused " .. k.label .. " (" .. tostring(ok and why or done) .. ")")
+				end
+			end
+		else
+			local ok, down = pcall(m.is_down, k.id)
+			if not ok or down == nil then k.was = nil
+			else
+				local was = k.was
+				k.was = down == true
+				if down == true and was == false and game_focused() then key_signal(k) end
+			end
+		end
+	end
 end
 
 -- ------------------------------------------------------------------ driver
@@ -924,6 +1005,8 @@ local function tick()
 	state.frames = state.frames + 1
 	if phase == "dead" then return end
 	if wait > 0 then wait = wait - 1 return end
+	local key_ok, key_err = pcall(key_step, state.frames)
+	if not key_ok then key_note(keys[1], "key: stopped on error: " .. tostring(key_err)) end
 	if phase == "start" then
 		prepare_scan(); phase = "scan"
 	elseif phase == "scan" then

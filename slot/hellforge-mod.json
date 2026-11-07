@@ -2,8 +2,8 @@
   "format": 1,
   "id": "vibeslacker.dedicated-melee-slot",
   "name": "Dedicated Melee Slot",
-  "version": "1.5.2",
-  "description": "Carry a pistol and a melee weapon at once. Pick the melee (machete, stun-lance, saber, stun-baton, hatchet or shovel) from a small box on the player card, or by name in melee-slot-weapon.txt: it rides in the secondary slot beside your pistol, and tapping 2 again while the secondary is drawn toggles between them in about half a second. Survives death and respawn. Does nothing until a melee is set. The pick box needs Bingus Shared Loader v15+ (loaded last).",
+  "version": "1.6.2",
+  "description": "Carry a melee weapon in your secondary slot beside your pistol, and another in your primary slot. Pick each from the two halves of a small box on the player card (machete, stun-lance, saber, stun-baton, hatchet or shovel), or by name in melee-slot-weapon.txt (secondary) and melee-slot-primary.txt (primary). Works out of the box with no setup: double tap the game's primary slot key (1) to swap the primary to its melee, double tap the secondary slot key (2) for the secondary; a single tap is always the firearm. The slot keys follow your own rebinds. Two optional keys on the game's bindings page (MODS > DEDICATED MELEE SLOT: Melee 1, Melee 2; needs Mod Bindings Menu) do the same with any trigger you prefer. Survives death and respawn. Does nothing until a melee is set. The pick box needs Bingus Shared Loader v15+ (loaded last).",
   "gameplay": false,
   "code": {
     "dll": "melee_weapon_slot.dll",
