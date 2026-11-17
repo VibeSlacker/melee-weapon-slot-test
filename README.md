@@ -12,7 +12,7 @@ It works for me, and I need to know where it breaks for you.
 1. Close the game and any HellForge session. Mods can only be changed with no session running.
 2. If you tried the earlier test zips (`Dedicated-Melee-Weapon-Slot-1.4.0` and `Melee-Picker-1.0.6`), remove both from the Mods page first. This one replaces them.
 3. Copy these into `Documents/HellForge/mods`:
-   - `Dedicated-Melee-Slot-1.6.2.zip`
+   - `Dedicated-Melee-Slot-1.6.3.zip`
    - Bingus Shared Loader v20 (or newer; v15 is the minimum) if you do not have it
    - Mod Bindings Menu, only if you want the optional extra swap keys (the built-in double tap needs nothing)
 4. Open the Mods page and enable both. Put Bingus Shared Loader **last** in the order.
@@ -23,7 +23,7 @@ It works for me, and I need to know where it breaks for you.
 1. On the loadout card, click the melee box and pick a weapon in each half you want: left half for the primary slot, right half for the secondary. (The box can be dragged; it remembers the spot.)
 2. Drop into a mission. The weapons are loaded before the mission starts, so pick them **before** you drop.
 3. Drop in and **double tap 1** (primary slot) or **double tap 2** (secondary slot): the slot's melee is in your hand in about half a second. A single press of the slot's own key always gives you the firearm back.
-4. Optional: open the game's bindings page, find **MODS > DEDICATED MELEE SLOT**, and set **Melee 1** and **Melee 2** to any key and trigger you prefer (press, long press, double tap).
+4. Optional: open the game's bindings page, find **MODS > DEDICATED MELEE SLOT**, and set **Melee 1** and **Melee 2** to any key or controller button and trigger you prefer (press, long press, double tap). These keys toggle: press once for the melee, press again with the melee in your hand to get the firearm back.
 
 The mod follows the slot keys you set in the game's own bindings, and notices a change in the middle of a session.
 
@@ -40,6 +40,11 @@ The melee box and its list sit under DiverKit's panel on the player card. The bo
 - With the melee in the secondary slot, picking a grenade shows the melee on the HUD (cosmetic).
 - Built for game build 25480438 (the SDK manifest). After a game update the mod needs a matching release.
 - Stick to the six weapons in the list. A wrong model package id is a fatal game error, so the mod only uses the game's own.
+
+## Changes in 1.6.3
+
+CHANGED
+- The Melee 1 and Melee 2 keys on the bindings page now toggle. Before, they only drew the melee, so a player who had no slot key to press (for example a controller player with a button bound there) could not get the firearm back. Now the same key swaps back when the melee is already in your hand. The double tap and the single press of the slot key work as before.
 
 ## Changes in 1.6.2
 
@@ -66,7 +71,7 @@ Please include all of these:
 ## Checksum (sha256)
 
 ```
-f5a2dd45b01204a7d29cf13181c9b1dec2131ec7d68880191ec5c1f308f2af62  Dedicated-Melee-Slot-1.6.2.zip
+a65d3c16714b8ee405a296a19533640d67aa9d4aade1afb86316a9fa15759693  Dedicated-Melee-Slot-1.6.3.zip
 ```
 
 ## License

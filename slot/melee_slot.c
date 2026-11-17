@@ -1,4 +1,4 @@
-/* Dedicated Melee Slot 1.6.2 (vibeslacker.dedicated-melee-slot). 1.6.2: a double tap of the game's own primary/secondary slot key (1 and 2 by default, following rebinds) is the built-in melee gesture; a single tap stays the firearm. The two optional bindings-page keys still work. Swaps stop on the other weapon slot, never on the grenade (a grenade selected while fire is held is thrown). 1.6.0: a melee for the PRIMARY slot too (melee-slot-primary.txt, picked in the Melee Picker's left half; the secondary pick stays melee-slot-weapon.txt), and two keys on the game's bindings page (Mod Bindings Menu, registered by the Melee Picker, which signals this mod through named events): "Melee 1 (primary slot)" and "Melee 2 (secondary slot)". The player sets each key and its trigger (press, long press, double tap...) in the game's own picker. A plain press of a slot key is ALWAYS the firearm (the slot's own weapon comes back after 250 ms), a double tap / long press / bindings key is ALWAYS the melee (never a toggle; with the melee already in the field it only draws it); gestures are debounced 350 ms per slot. Swaps hold on the grenade slot (no wait there) and follow the player's own slot keys: the primary, secondary and grenade keys are read from the game's input_settings.config (checked every 2 s, parsed only when it changes; default 1, 2, 4), and a Hold/LongPress key is held long enough. The old tap-again-2 toggle is off. 1.5.2: Entrenchment Tool stats popup (picker). 1.5.1: adds the CQC-72 Entrenchment Tool (shovel). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
+/* Dedicated Melee Slot 1.6.3-bind1 (vibeslacker.dedicated-melee-slot). 1.6.2: a double tap of the game's own primary/secondary slot key (1 and 2 by default, following rebinds) is the built-in melee gesture; a single tap stays the firearm. The two optional bindings-page keys still work. Swaps stop on the other weapon slot, never on the grenade (a grenade selected while fire is held is thrown). 1.6.0: a melee for the PRIMARY slot too (melee-slot-primary.txt, picked in the Melee Picker's left half; the secondary pick stays melee-slot-weapon.txt), and two keys on the game's bindings page (Mod Bindings Menu, registered by the Melee Picker, which signals this mod through named events): "Melee 1 (primary slot)" and "Melee 2 (secondary slot)". The player sets each key and its trigger (press, long press, double tap...) in the game's own picker. A plain press of a slot key is ALWAYS the firearm (the slot's own weapon comes back after 250 ms), a double tap / long press / bindings key is ALWAYS the melee (never a toggle; with the melee already in the field it only draws it); gestures are debounced 350 ms per slot. Swaps hold on the grenade slot (no wait there) and follow the player's own slot keys: the primary, secondary and grenade keys are read from the game's input_settings.config (checked every 2 s, parsed only when it changes; default 1, 2, 4), and a Hold/LongPress key is held long enough. The old tap-again-2 toggle is off. 1.5.2: Entrenchment Tool stats popup (picker). 1.5.1: adds the CQC-72 Entrenchment Tool (shovel). 1.5.0: renamed, shipped as one package with the picker (no behaviour change). 1.4.0: config files are read from Documents\\HellForge AND the game's Logs folder (newer wins), so the sandboxed HellForge 0.3.0 works. 1.1.0 to 1.3.0: pick the melee by name (machete, stun-lance, saber, stun-baton,
  * hatchet) in melee-slot-weapon.txt; a melee's built-in package set is used unless melee-slot-package.txt overrides it; melee-slot-probe.txt
  * turns on the package-list dump used to find the sets of the melees that have none yet. Carry a pistol AND a melee weapon: tapping the secondary key (2) while the
  * secondary is already drawn toggles slot 2 between the real secondary and the melee weapon, in about half a second.
@@ -48,7 +48,7 @@ static volatile uint32_t g_avatar;
 static volatile LONG g_missionOn, g_missionSeq, g_regOk;
 static volatile ULONGLONG g_missionTick;
 static volatile LONG g_tapFlag, g_swapStage, g_inject, g_retries, g_swapSlot, g_waitVk;
-static volatile LONG g_keyFlag[2];
+static volatile LONG g_keyFlag[2], g_bindToggle[2];   /* g_bindToggle: the flag came from a bindings-page key (hotkey 4: toggles melee/firearm); keyboard double taps never set it */
 static HANDLE g_keyEvent[2];   /* named events the Melee Picker sets when a bindings-page key is pressed (0 = primary, 1 = secondary) */
 static volatile ULONGLONG g_swapDeadline, g_swapAt, g_lastPress, g_swapStarted;
 static volatile uint32_t g_swapTarget, g_heldSel;
@@ -500,6 +500,7 @@ static void DoSwap(HfMod* mod, int si, int hotkey)
     if (hotkey == 2 && cur != clone) return;   /* tap back: only when the melee is what the field holds */
     if (cur != clone && cur != orig) { hf->log(mod, "swap ignored: the %s field holds %u, neither the weapon %u nor the melee %u", si == 0 ? "primary" : "secondary", cur, orig, clone); return; }
     /* a gesture (hotkey 1) always means the melee, a plain tap back (hotkey 2) always the slot's own weapon; only the old tap-again (hotkey 0) toggles */
+    if (hotkey == 4) hotkey = (cur == clone && selection == drawSel) ? 2 : 1;   /* bindings-page key: the melee already drawn goes back to the firearm, otherwise the melee is drawn (keyboard double taps stay hotkey 1) */
     if (hotkey == 1 && cur == clone)   /* the melee is already in the field: just draw it */
     {
         g_waitVk = g_keyVk[si == 1 ? 2 : 1];
@@ -586,7 +587,8 @@ static void Tick(HfMod* mod, float dt, void* user)
     {
         if (InterlockedExchange(&g_keyFlag[i], 0))
         {
-            if (now - g_lastGesture[i] >= GESTURE_DEBOUNCE_MS) { g_lastGesture[i] = now; DoSwap(mod, i, 1); }
+            if (now - g_lastGesture[i] >= GESTURE_DEBOUNCE_MS) { g_lastGesture[i] = now; DoSwap(mod, i, InterlockedExchange(&g_bindToggle[i], 0) ? 4 : 1); }
+            else g_bindToggle[i] = 0;
         }
         else if (g_pendingAt[i] && now >= g_pendingAt[i])
         {
@@ -742,6 +744,7 @@ static DWORD WINAPI KeyThread(LPVOID unused)
         for (int i = 0; i < 2; i++)
             if (g_keyEvent[i] && WaitForSingleObject(g_keyEvent[i], 0) == WAIT_OBJECT_0)
             {
+                InterlockedExchange(&g_bindToggle[i], 1);
                 InterlockedExchange(&g_keyFlag[i], 1);
                 g_pendingAt[i] = 0; g_gestureUntil[i] = GetTickCount64() + 700;   /* a gesture cancels the tap back, and so does the release that ends it */
             }
@@ -834,7 +837,7 @@ HF_MOD_EXPORT int hellforge_mod_init(const HfApi* hf, HfMod* mod)
     HANDLE k = CreateThread(NULL, 0, KeyThread, NULL, 0, NULL);
     if (k) CloseHandle(k);
     int tick = hf->size >= offsetof(HfApi, on_game_thread) + sizeof hf->on_game_thread ? hf->on_game_thread(mod, Tick, NULL) : 0;
-    hf->log(mod, "Dedicated Melee Slot 1.6.2 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s, bindings-key events %s)",
+    hf->log(mod, "Dedicated Melee Slot 1.6.3-bind1 loaded (weapon event %s, inventory thread %s, key thread %s, game tick %s, bindings-key events %s)",
         ok ? "subscribed" : "REFUSED", t ? "started" : "FAILED", k ? "started" : "FAILED", tick ? "hooked" : "NOT hooked",
         g_keyEvent[0] && g_keyEvent[1] ? "ready" : "FAILED");
     return 0;
